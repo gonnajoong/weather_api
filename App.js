@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, StatusBar} from 'react-native';
+import { SafeAreaView, StatusBar, ScrollView} from 'react-native';
 
 // Views
 import Main from "./Views/Main";
@@ -7,8 +7,10 @@ import Main from "./Views/Main";
 const App = () => {
   return (
     <SafeAreaView>
-      <StatusBar hidden />
-      <Main/>
+      <ScrollView>
+          <StatusBar hidden />
+          <Main/>
+      </ScrollView>
     </SafeAreaView>
   );
 };
