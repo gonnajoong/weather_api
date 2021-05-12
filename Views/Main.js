@@ -6,17 +6,31 @@ import main from '../Assets/views/_main';
 const backRiver = { uri: ''}
 
 class Main extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            searchText: '',
+        };
+    }
 
+    handler = (e, key) => {
+        let temp = [];
+        temp[key] = e;
+        this.setState(temp);
+    }
 
     render() {
+        const {searchText} = this.state;
         return (
             <View style={main.container}>
                 <View style={main.searchWrap}>
                     <TextInput
                         style={main.searchBar}
                         placeholder='지역 날씨 검색'
+                        value={searchText}
+                        onChangeText={e => this.handler(e, 'searchText')}
                     />
-                    <TouchableOpacity style={main.searchIcon} onPressOut={() => Alert.alert('클릭 테스트')}>
+                    <TouchableOpacity style={main.searchIcon} onPressOut={() => Alert.alert('검색내용 : '+searchText)}>
                         <Image style={main.searchIconImage} source={require('../images/icons/search_icon.png')}/>
                     </TouchableOpacity>
                 </View>

@@ -21,6 +21,7 @@ const main = StyleSheet.create({
         borderBottomWidth: 1,
         borderColor: '#ccc',
         paddingLeft: 10,
+        paddingRight: 40,
     },
     searchIcon: {
         width: 30,
