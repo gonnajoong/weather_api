@@ -6,6 +6,8 @@ import main from '../Assets/views/_main';
 const backRiver = { uri: ''}
 
 class Main extends Component {
+
+
     render() {
         return (
             <View style={main.container}>
