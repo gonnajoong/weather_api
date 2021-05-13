@@ -20,13 +20,7 @@ class Main extends Component {
     async componentDidMount() {
         await this.requestLocationPermission();
         this.getsLocation();
-        const open_API_river = "https://api.qwer.pw/request/hangang_temp";
-        let response = axios.get(open_API_river, {
-            'apikey': 'guest'
-        });
-        for ( let key in response) {
-            console.log('리스뽄스 ' + key + " 밸류 " + response[key]);
-        }
+        await this.getRiverTemp();
         // await this.setState({riverTemp: result});
         // console.log('console.log '+result);
     }
@@ -43,23 +37,50 @@ class Main extends Component {
         }, (error) => {
             alert('error : ' + error.message);
             //퍼미션 없을 시 실패 AndroidManifest.xml 에서 추가할 것
-        })
+        });
+    }
+
+    async getRiverTemp () {
+        await axios.get('https://api.qwer.pw/request/hangang_temp?apikey=guest').then(
+            async (response) => {
+                let data = response['data'];
+
+                // for(let key in response) {
+                //     console.log('객체배열 ' + response + ' 구분선 ' + key);
+                //     console.log(response[key]);
+                // }
+                console.log('객체 ' + data[0].result);
+                if(data[0].result == 'success') {
+                    console.log('성공');
+                    let riverTemp = {riverTemp: data[1].respond.temp};
+
+                    await this.setState(riverTemp);
+                } else {
+                    console.log('실패');
+                    alert('수온 요청 실패');
+                }
+            }
+        ).catch(function (error){
+            console.log('에라 ' + error);
+        });
     }
     
     async requestLocationPermission () {
     //    동적 퍼미션
-        try {
-            //퍼미션 요청 다이얼로그 보이기
-            const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-            console.log('console.log',PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION));
-            if(granted == PermissionsAndroid.RESULTS.GRANTED) {
-                alert('위치정보 사용을 허가하셨습니다.');
-            } else {
-                alert('위치정보 사용을 거부하셨습니다.\n앱의 기능이 제한됩니다.');
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+        if(!granted) {
+            try {
+                //퍼미션 요청 다이얼로그 보이기
+                if(granted == PermissionsAndroid.RESULTS.GRANTED) {
+                    alert('위치정보 사용을 허가하셨습니다.');
+                } else {
+                    alert('위치정보 사용을 거부하셨습니다.\n앱의 기능이 제한됩니다.');
+                }
+            } catch (err) {
+                alert('퍼미션 작업 에러');
             }
-        } catch (err) {
-            alert('퍼미션 작업 에러');
         }
+
     }
 
 
@@ -106,7 +127,7 @@ class Main extends Component {
                 <View style={main.riverTempWrap}>
                     <ImageBackground style={main.riverTempBack}>
                         <Text style={main.riverTempText}>현재 한강 수온</Text>
-                        <Text style={main.riverTemperature}>{riverTemp.temp} °C</Text>
+                        <Text style={main.riverTemperature}>{riverTemp} °C</Text>
                     </ImageBackground>
                 </View>
                 <View style={main.hopeTextWrap}>
