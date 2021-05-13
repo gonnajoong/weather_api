@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
 import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
+import riverManager from "./managers/river";
+
+import constant from "../Utils/constant";
 
 //style
 import main from '../Assets/views/_main';
@@ -71,19 +74,24 @@ class Main extends Component {
     }
 
     async getRiverTemp () {
-        await axios.get('https://api.qwer.pw/request/hangang_temp?apikey=guest').then(
-            async (response) => {
-                let data = response['data'];
-                if(data[0].result == 'success') {
-                    let riverTemp = {riverTemp: data[1].respond.temp};
-                    await this.setState(riverTemp);
-                } else {
-                    alert('수온 요청 실패');
-                }
+        let query = {
+            apikey: constant.apikey,
+        }
+        const {status, data} = await riverManager.get(query);
+
+        for(let i in data) {
+            console.log('매니저 키 ' + data[i]);
+        }
+        if(status === 200) {
+            if(data[0].result == "success") {
+                let riverTemp = {riverTemp: data[1].respond.temp};
+                await this.setState(riverTemp);
+            } else {
+                console.log('정보 요청 실패');
             }
-        ).catch(function (error){
-            console.log('에라 ' + error);
-        });
+        } else {
+            console.log('에러');
+        }
     }
 
     async getNeighborhoodTemp (lat, lon) {
