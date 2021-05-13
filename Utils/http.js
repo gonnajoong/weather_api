@@ -21,14 +21,15 @@ const generateQuery = query => {
 class Http {
     constructor(url) {
         this.url = url;
-        this.options = {};
     }
 
 
     get(query) {
-
         return new Promise(async (resolve, reject) => {
-            resolve(axios.get(this.url + generateQuery(query), this.options));
+            let apiCheck = this.url + generateQuery(query);
+            resolve(axios.get(this.url + generateQuery(query)).catch((err) => {console.log('에러 '+ err)}));
+            console.log('API 체크 '+apiCheck);
+
         });
     }
 }

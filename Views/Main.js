@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
 import riverManager from "./managers/river";
+import weatherManager from "./managers/weather";
 
 import constant from "../Utils/constant";
 
@@ -74,14 +75,8 @@ class Main extends Component {
     }
 
     async getRiverTemp () {
-        let query = {
-            apikey: constant.apikey,
-        }
+        let query = {apikey: constant.apikey}
         const {status, data} = await riverManager.get(query);
-
-        for(let i in data) {
-            console.log('매니저 키 ' + data[i]);
-        }
         if(status === 200) {
             if(data[0].result == "success") {
                 let riverTemp = {riverTemp: data[1].respond.temp};
@@ -95,28 +90,30 @@ class Main extends Component {
     }
 
     async getNeighborhoodTemp (lat, lon) {
-        let getUrl = 'https://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&appid=8347650a0034f9608ff315324c80721b'+'&lang=kr';
-        console.log('주소 - '+ getUrl);
-        await axios.get(getUrl).then(
-            async (response) => {
-                let data = response['data'];
-                console.log('날씨 - ' + data.name);
-                alert('지역명' + data.name);
-                let weather = data.weather;
-                let main = data.main;
-                let wind = data.wind;
-                await this.setState({
-                    w_icon: weather[0].icon,
-                    weatherType: weather[0].description, //날씨 상태
-                    temp_max: this.Kconvert(main.temp_max),
-                    temp_min: this.Kconvert(main.temp_min),
-                    temp: this.Kconvert(main.temp),
-                    s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
-                });
-            }
-        ).catch(function (error){
-            console.log('에라 ' + error);
-        });
+        let query = {
+            lat: lat,
+            lon: lon,
+            appid: constant.weatherKey,
+            lang: 'kr'
+        };
+
+        const {status, data} = await weatherManager.get(query);
+        console.log('스뗴이터스 '+status);
+        if(status === 200) {
+            let weather = data.weather;
+            let main = data.main;
+            let wind = data.wind;
+            await this.setState({
+                w_icon: weather[0].icon,
+                weatherType: weather[0].description, //날씨 상태
+                temp_max: this.Kconvert(main.temp_max),
+                temp_min: this.Kconvert(main.temp_min),
+                temp: this.Kconvert(main.temp),
+                s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
+            });
+        } else {
+            console.log('에러');
+        }
     }
 
     Kconvert (kelvin) {
@@ -175,12 +172,12 @@ class Main extends Component {
 
     async refreshButton (e) {
         e.preventDefault();
+        const {lat, lon} = this.state;
         await this.setState({refreshDate: this.dateFormat(), loadingToggle: true});
         await this.getsLocation();
-        await this.getNeighborhoodTemp();
+        await this.getNeighborhoodTemp(lat, lon);
         await this.getRiverTemp();
         await this.setState({loadingToggle: false});
-        alert('갱신!');
     }
 
 
