@@ -73,7 +73,6 @@ const main = StyleSheet.create({
     weatherIcon: {
         width: 100,
         height: 100,
-        backgroundColor: 'gray',
     },
     weatherRefreshWrap: {
         width: '100%',

@@ -6,6 +6,27 @@ import Geolocation from "react-native-geolocation-service";
 import main from '../Assets/views/_main';
 import axios from "axios";
 
+const icons = {
+    "01d": require('../images/icons/01d.png'),
+    "01n": require('../images/icons/01n.png'),
+    "02d": require('../images/icons/02d.png'),
+    "02n": require('../images/icons/02n.png'),
+    "03d": require('../images/icons/03d.png'),
+    "03n": require('../images/icons/03n.png'),
+    "04d": require('../images/icons/04d.png'),
+    "04n": require('../images/icons/04n.png'),
+    "09d": require('../images/icons/09d.png'),
+    "09n": require('../images/icons/09n.png'),
+    "10d": require('../images/icons/10d.png'),
+    "10n": require('../images/icons/10n.png'),
+    "11d": require('../images/icons/11d.png'),
+    "11n": require('../images/icons/11n.png'),
+    "13d": require('../images/icons/13d.png'),
+    "13n": require('../images/icons/13n.png'),
+    "50d": require('../images/icons/50d.png'),
+    "50n": require('../images/icons/50n.png'),
+}
+
 class Main extends Component {
     constructor(props) {
         super(props);
@@ -15,6 +36,7 @@ class Main extends Component {
             lon: 0,
             riverTemp: '',
             weatherType: '', //날씨 상태
+            w_icon: '', //날씨 아이콘
             temp_max: '',
             temp_min: '',
             temp: '',
@@ -76,6 +98,7 @@ class Main extends Component {
                 let main = data.main;
                 let wind = data.wind;
                 await this.setState({
+                    w_icon: weather[0].icon,
                     weatherType: weather[0].description, //날씨 상태
                     temp_max: this.Kconvert(main.temp_max),
                     temp_min: this.Kconvert(main.temp_min),
@@ -154,7 +177,7 @@ class Main extends Component {
 
 
     render() {
-        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime, loadingToggle} = this.state;
+        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime, loadingToggle, w_icon} = this.state;
         return (
             <View style={main.container}>
                 <View style={main.searchWrap}>
@@ -173,6 +196,7 @@ class Main extends Component {
                         <View style={main.weatherTempLeftWrap}>
                             <Image
                                 style={main.weatherIcon}
+                                source={icons[w_icon]}
                             />
                             <Text style={main.weatherTemp}>{temp ? temp : '-'}°</Text>
                         </View>
