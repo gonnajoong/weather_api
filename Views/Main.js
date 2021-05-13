@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid } from 'react-native';
+import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
 
 //style
@@ -21,6 +21,7 @@ class Main extends Component {
             s_temp: '', // 체감 온도
             refreshDate: this.dateFormat(),
             nowTime: new Date(), // 현재 시간
+            loadingToggle: false,
         };
     }
     async componentDidMount() {
@@ -141,9 +142,19 @@ class Main extends Component {
         }
     }
 
+    async refreshButton (e) {
+        e.preventDefault();
+        await this.setState({refreshDate: this.dateFormat(), loadingToggle: true});
+        await this.getsLocation();
+        await this.getNeighborhoodTemp();
+        await this.getRiverTemp();
+        await this.setState({loadingToggle: false});
+        alert('갱신!');
+    }
+
 
     render() {
-        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime} = this.state;
+        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime, loadingToggle} = this.state;
         return (
             <View style={main.container}>
                 <View style={main.searchWrap}>
@@ -173,8 +184,13 @@ class Main extends Component {
                     </View>
                     <View style={main.weatherRefreshWrap}>
                         <Text style={main.weatherRefreshText}>{refreshDate}</Text>
-                        <TouchableOpacity style={main.weatherRefresh} onPressOut={() => Alert.alert('클릭 테스트')}>
-                            <Image style={main.weatherRefreshImage} source={require('../images/icons/refresh_icon.png')}/>
+                        <TouchableOpacity style={main.weatherRefresh} onPressOut={e => this.refreshButton(e)}>
+                            {
+                                loadingToggle ?
+                                    <ActivityIndicator size="small" color="#ccc" />
+                                    :
+                                    <Image style={main.weatherRefreshImage} source={require('../images/icons/refresh_icon.png')}/>
+                            }
                         </TouchableOpacity>
                     </View>
                     <Text style={main.weatherFavoritText}>
