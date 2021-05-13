@@ -3,6 +3,7 @@ import { Fonts } from "../fonts/Fonts";
 
 const main = StyleSheet.create({
     container: {
+        flex: 1,
         alignItems: 'center',
         height: '100%',
         width: '100%',
@@ -55,7 +56,7 @@ const main = StyleSheet.create({
         flexDirection: 'row',
     },
     weatherTemp: {
-        fontSize: 46,
+        fontSize: 40,
         justifyContent: 'center',
         textAlign: 'center',
         paddingLeft: 10,
@@ -66,6 +67,7 @@ const main = StyleSheet.create({
     },
     weatherTempDetailText: {
         textAlign: 'right',
+        fontSize: 12,
         fontFamily: Fonts.NOTOSANSKR,
     },
     weatherIcon: {
@@ -82,7 +84,11 @@ const main = StyleSheet.create({
         marginRight: 0,
     },
     weatherRefreshText: {
-        width: 100,
+        width: 125,
+        height: 20,
+        lineHeight: 20,
+        fontSize: 12,
+        textAlign: 'left',
     },
     weatherRefresh: {
         width: 20,
@@ -104,12 +110,19 @@ const main = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 10,
         marginBottom: 10,
+        overflow: 'hidden'
     },
     riverTempBack: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
         justifyContent: 'center',
+        borderRadius: 10,
+    },
+    riverTextWrap: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0,0,0,0.5)'
     },
     riverTempText: {
         fontSize: 20,
@@ -117,6 +130,7 @@ const main = StyleSheet.create({
         position: 'absolute',
         bottom: 50,
         left: 10,
+        color: '#fff',
     },
     riverTemperature: {
         fontSize: 52,
@@ -124,6 +138,7 @@ const main = StyleSheet.create({
         position: 'absolute',
         top: 50,
         right: 10,
+        color: '#fff',
     },
     hopeTextWrap: {
         width: '100%',

@@ -19,6 +19,8 @@ class Main extends Component {
             temp_min: '',
             temp: '',
             s_temp: '', // 체감 온도
+            refreshDate: this.dateFormat(),
+            nowTime: new Date(), // 현재 시간
         };
     }
     async componentDidMount() {
@@ -71,12 +73,13 @@ class Main extends Component {
                 alert('지역명' + data.name);
                 let weather = data.weather;
                 let main = data.main;
+                let wind = data.wind;
                 await this.setState({
                     weatherType: weather[0].description, //날씨 상태
                     temp_max: this.Kconvert(main.temp_max),
                     temp_min: this.Kconvert(main.temp_min),
                     temp: this.Kconvert(main.temp),
-                    s_temp: 0, // 체감 온도
+                    s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
                 });
             }
         ).catch(function (error){
@@ -89,6 +92,38 @@ class Main extends Component {
         let celsius = 0;
         celsius = parseFloat(kelvin - kelvinZero);
         return celsius.toFixed(1);
+    }
+
+    windChillTemp (kelvin, wind) {
+        //켈빈온도를 받는 API라 변수도 kelvin 으로 받음
+        let kelvinZero = parseFloat(273.15);
+
+        let t2 = 0;
+        let v2 = wind;
+        let windChill = 0;
+
+        t2 = parseFloat(kelvin - kelvinZero);
+
+        let v3 = Math.pow(v2*3.6, 0.16);
+        windChill = 13.12 + 0.6215*t2 - (11.37*v3)+0.3965*v3*t2;
+        return windChill.toFixed(1);
+    }
+
+    dateFormat () {
+        let sampleTimestamp = Date.now(); //현재시간 타임스탬프 13자리 예)1599891939914
+        let date = new Date(sampleTimestamp); //타임스탬프를 인자로 받아 Date 객체 생성
+        let week = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+        let month = ("0" + (date.getMonth() + 1)).slice(-2); //월 2자리 (01, 02 ... 12)
+        let day = ("0" + date.getDate()).slice(-2); //일 2자리 (01, 02 ... 31)
+        let hour = ("0" + date.getHours()).slice(-2); //시 2자리 (00, 01 ... 23)
+        let minute = ("0" + date.getMinutes()).slice(-2); //분 2자리 (00, 01 ... 59)
+
+        let today = new Date().getDay();
+        let todayLabel = week[today];
+
+        let refreshTime = month+'월 '+day+'일 '+todayLabel+' '+ hour+':'+minute;
+
+        return refreshTime;
     }
     
     async requestLocationPermission () {
@@ -104,12 +139,11 @@ class Main extends Component {
                 alert('퍼미션 작업 에러');
             }
         }
-
     }
 
 
     render() {
-        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp} = this.state;
+        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime} = this.state;
         return (
             <View style={main.container}>
                 <View style={main.searchWrap}>
@@ -138,7 +172,7 @@ class Main extends Component {
                         </View>
                     </View>
                     <View style={main.weatherRefreshWrap}>
-                        <Text style={main.weatherRefreshText}>05.12 오후 2:22</Text>
+                        <Text style={main.weatherRefreshText}>{refreshDate}</Text>
                         <TouchableOpacity style={main.weatherRefresh} onPressOut={() => Alert.alert('클릭 테스트')}>
                             <Image style={main.weatherRefreshImage} source={require('../images/icons/refresh_icon.png')}/>
                         </TouchableOpacity>
@@ -148,9 +182,11 @@ class Main extends Component {
                     </Text>
                 </View>
                 <View style={main.riverTempWrap}>
-                    <ImageBackground style={main.riverTempBack}>
-                        <Text style={main.riverTempText}>현재 한강 수온</Text>
-                        <Text style={main.riverTemperature}>{riverTemp} °C</Text>
+                    <ImageBackground style={main.riverTempBack} source={nowTime.getHours() > 6 || nowTime.getHours() < 18 ? require('../images/commons/river_morning.jpg') : require('../images/commons/river_night.jpg')}>
+                        <View style={main.riverTextWrap}>
+                            <Text style={main.riverTempText}>현재 한강 수온</Text>
+                            <Text style={main.riverTemperature}>{riverTemp} °C</Text>
+                        </View>
                     </ImageBackground>
                 </View>
                 <View style={main.hopeTextWrap}>
