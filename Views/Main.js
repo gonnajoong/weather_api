@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator } from 'react-native';
+import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
@@ -8,7 +8,7 @@ import constant from "../Utils/constant";
 
 //style
 import main from '../Assets/views/_main';
-import axios from "axios";
+
 
 const icons = {
     "01d": require('../images/icons/01d.png'),
@@ -31,6 +31,10 @@ const icons = {
     "50n": require('../images/icons/50n.png'),
 }
 
+const wait = (timeout) => {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
 class Main extends Component {
     constructor(props) {
         super(props);
@@ -48,6 +52,7 @@ class Main extends Component {
             refreshDate: this.dateFormat(),
             nowTime: new Date(), // 현재 시간
             loadingToggle: false,
+            refreshing: false,
         };
     }
     async componentDidMount() {
@@ -180,10 +185,32 @@ class Main extends Component {
         await this.setState({loadingToggle: false});
     }
 
+    refreshData () {
+        const {lat, lon} = this.state;
+        this.setState({refreshDate: this.dateFormat()});
+        this.getsLocation();
+        this.getNeighborhoodTemp(lat, lon);
+        this.getRiverTemp();
+    }
+
+    _onRefresh = () => {
+        this.setState({refreshing: true});
+        wait(2000).then(() => {
+            this.refreshData();
+            this.setState({refreshing: false});
+        });
+    }
+
 
     render() {
         const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime, loadingToggle, w_icon} = this.state;
         return (
+            <ScrollView refreshControl={
+                <RefreshControl
+                    refreshing={this.state.refreshing}
+                    onRefresh={this._onRefresh}
+                />
+            }>
             <View style={main.container}>
                 <View style={main.searchWrap}>
                     <TextInput
@@ -243,6 +270,7 @@ class Main extends Component {
                     </Text>
                 </View>
             </View>
+            </ScrollView>
         );
     }
 }

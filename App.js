@@ -20,17 +20,8 @@ const App = () => {
 
     return (
         <SafeAreaView>
-            <ScrollView
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                    />
-                }
-            >
-                  <StatusBar hidden />
-                 <Main/>
-              </ScrollView>
+                <StatusBar hidden />
+                <Main/>
         </SafeAreaView>
       );
 };
