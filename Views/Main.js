@@ -3,12 +3,15 @@ import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity,
 import Geolocation from "react-native-geolocation-service";
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
+import coronaManager from "./managers/corona";
 
 import constant from "../Utils/constant";
+import {date} from "../Utils/filter";
 
 //style
 import main from '../Assets/views/_main';
 
+const convert = require('xml-js');
 
 const icons = {
     "01d": require('../images/icons/01d.png'),
@@ -60,6 +63,7 @@ class Main extends Component {
         await this.getsLocation();
         await this.getRiverTemp();
         await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
+        await this.getCorona();
 
     }
 
@@ -182,6 +186,7 @@ class Main extends Component {
         await this.getsLocation();
         await this.getNeighborhoodTemp(lat, lon);
         await this.getRiverTemp();
+        await this.getCorona();
         await this.setState({loadingToggle: false});
     }
 
@@ -191,6 +196,7 @@ class Main extends Component {
         this.getsLocation();
         this.getNeighborhoodTemp(lat, lon);
         this.getRiverTemp();
+        this.getCorona();
     }
 
     _onRefresh = () => {
@@ -199,6 +205,23 @@ class Main extends Component {
             this.refreshData();
             this.setState({refreshing: false});
         });
+    }
+
+    async getCorona () {
+        let query = {
+            ServiceKey: constant.coronaKey,
+            pageNo: '1',
+            numOfRows: '10',
+            startCreateDt: date(new Date(),'yyyyMMdd'),
+            endCreateDt: date(new Date(),'yyyyMMdd'),
+        };
+
+        const {status, data} = coronaManager.get(query);
+        if(status === 200) {
+            console.log('엑셈엘 ' + data);
+        } else {
+            console.log('error');
+        }
     }
 
 
