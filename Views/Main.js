@@ -62,13 +62,13 @@ class Main extends Component {
         };
     }
     async componentDidMount() {
+        await this._onRefresh();
         await this.requestLocationPermission();
         await this.getsLocation();
         await this.getRiverTemp();
         await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
         await this.getCorona();
         await this.randomMent();
-
     }
 
     handler = (e, key) => {
@@ -237,6 +237,7 @@ class Main extends Component {
                     previousDay: total.incDec.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     baseDate: total.stdDay,
                 });
+                alert('hi corona');
             } catch(err) {
                 console.log('error ' + err);
                 return false;
@@ -250,8 +251,9 @@ class Main extends Component {
     async randomMent () {
         let {author, mentArr} = this.state;
         let mentLength = mentArr.length;
-        let ment = mentArr[Math.floor(Math.random() * mentLength)];
-        let authorName = author[Math.floor(Math.random() * mentLength)];
+        let randomNum = Math.floor(Math.random() * mentLength);
+        let ment = mentArr[randomNum];
+        let authorName = author[randomNum];
 
         await this.setState({ment: ment, authorName: authorName});
     }
