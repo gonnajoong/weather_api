@@ -4,6 +4,9 @@ import { SafeAreaView, StatusBar, ScrollView, RefreshControl} from 'react-native
 // Views
 import Main from "./Views/Main";
 
+// Style
+import index from "./Assets/views/_index";
+
 // drag to down
 const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
@@ -19,7 +22,7 @@ const App = () => {
     }, []);
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={index.container}>
                 <StatusBar hidden />
                 <Main/>
         </SafeAreaView>

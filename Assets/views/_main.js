@@ -7,9 +7,9 @@ const main = StyleSheet.create({
         alignItems: 'center',
         height: '100%',
         width: '100%',
-        padding: 20,
-        paddingTop: 60,
-        backgroundColor: '#f1f1f1',
+        padding: 10,
+        paddingTop: 40,
+
     },
     searchWrap: {
         width: '100%',
@@ -37,7 +37,6 @@ const main = StyleSheet.create({
     },
     weatherIconWrap: {
         width: '100%',
-        height: 250,
         padding: 10,
         backgroundColor: '#fff',
         alignItems: 'center',
@@ -46,7 +45,6 @@ const main = StyleSheet.create({
     },
     weatherTempDetailWrap: {
         width: '100%',
-        height: 150,
         padding: 6,
         flexDirection: 'row',
         alignItems: 'center',
@@ -98,9 +96,9 @@ const main = StyleSheet.create({
         width: 20,
         height: 20,
     },
-    weatherFavoritText: {
+    coronaWrap: {
         width: '100%',
-        fontSize: 16,
+        fontSize: 14,
         textAlign: 'left'
     },
     riverTempWrap: {
@@ -139,6 +137,38 @@ const main = StyleSheet.create({
         right: 10,
         color: '#fff',
     },
+    coronaWrap: {
+        width: '100%',
+        height: 150,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        marginBottom: 10,
+        padding: 10,
+    },
+    coronaTop: {
+        height: 100,
+        marginBottom: 10,
+    },
+    coronaTextWrap: {
+        width: '100%',
+        textAlign: 'left',
+        marginBottom: 10,
+    },
+    coronaSplitText: {
+        position: 'absolute',
+        right: 0,
+    },
+    coronaHighlight: {
+        color: '#e00000',
+    },
+    coronaBottom: {
+        width: '100%',
+    },
+    coronaBottomText: {
+        fontSize: 12,
+        textAlign: 'right',
+        color: '#333333',
+    },
     hopeTextWrap: {
         width: '100%',
         height: 200,
@@ -152,7 +182,7 @@ const main = StyleSheet.create({
         textAlign: 'center',
         justifyContent: 'center',
         fontFamily: Fonts.NOTOSANSKR,
-        fontSize: 36,
+        fontSize: 20,
     },
     hopeTextAuthor: {
         textAlign: 'center',

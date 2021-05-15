@@ -7,11 +7,10 @@ import coronaManager from "./managers/corona";
 
 import constant from "../Utils/constant";
 import {date} from "../Utils/filter";
+import {author, ment} from "../Utils/goodMents";
 
 //style
 import main from '../Assets/views/_main';
-
-const convert = require('xml-js');
 
 const icons = {
     "01d": require('../images/icons/01d.png'),
@@ -56,6 +55,10 @@ class Main extends Component {
             nowTime: new Date(), // 현재 시간
             loadingToggle: false,
             refreshing: false,
+            author: author,
+            mentArr: ment,
+            ment: '',
+            authorName: '',
         };
     }
     async componentDidMount() {
@@ -64,6 +67,7 @@ class Main extends Component {
         await this.getRiverTemp();
         await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
         await this.getCorona();
+        await this.randomMent();
 
     }
 
@@ -107,7 +111,6 @@ class Main extends Component {
         };
 
         const {status, data} = await weatherManager.get(query);
-        console.log('스뗴이터스 '+status);
         if(status === 200) {
             let weather = data.weather;
             let main = data.main;
@@ -197,6 +200,7 @@ class Main extends Component {
         this.getNeighborhoodTemp(lat, lon);
         this.getRiverTemp();
         this.getCorona();
+        this.randomMent();
     }
 
     _onRefresh = () => {
@@ -216,17 +220,46 @@ class Main extends Component {
             endCreateDt: date(new Date(),'yyyyMMdd'),
         };
 
-        const {status, data} = coronaManager.get(query);
+        const {status, data} = await coronaManager.get(query);
         if(status === 200) {
-            console.log('엑셈엘 ' + data);
+            try {
+                let xmlArrays = data.response.body.items.item;
+                let total = '';
+
+                for (let i in xmlArrays) {
+                    if(Array.isArray(xmlArrays) && xmlArrays[i].gubun == '합계') {
+                        total = xmlArrays[i];
+                    }
+                }
+                await this.setState({
+                    deathCnt: total.deathCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                    totalCnt: total.defCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                    previousDay: total.incDec.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                    baseDate: total.stdDay,
+                });
+            } catch(err) {
+                console.log('error ' + err);
+                return false;
+            }
         } else {
-            console.log('error');
+            console.log('에라 코드 ');
+            return false;
         }
     }
 
+    async randomMent () {
+        let {author, mentArr} = this.state;
+        let mentLength = mentArr.length;
+        let ment = mentArr[Math.floor(Math.random() * mentLength)];
+        let authorName = author[Math.floor(Math.random() * mentLength)];
+
+        await this.setState({ment: ment, authorName: authorName});
+    }
 
     render() {
-        const {searchText, riverTemp, weatherType, temp_max, temp_min, temp, s_temp, refreshDate, nowTime, loadingToggle, w_icon} = this.state;
+        const {searchText, riverTemp, weatherType, temp_max, temp_min,
+            temp, s_temp, refreshDate, nowTime, loadingToggle, w_icon,
+            deathCnt, totalCnt, previousDay, baseDate, ment, authorName} = this.state;
         return (
             <ScrollView refreshControl={
                 <RefreshControl
@@ -235,17 +268,6 @@ class Main extends Component {
                 />
             }>
             <View style={main.container}>
-                <View style={main.searchWrap}>
-                    <TextInput
-                        style={main.searchBar}
-                        placeholder='지역 날씨 검색'
-                        value={searchText}
-                        onChangeText={e => this.handler(e, 'searchText')}
-                    />
-                    <TouchableOpacity style={main.searchIcon} onPressOut={() => Alert.alert('검색내용 : '+searchText)}>
-                        <Image style={main.searchIconImage} source={require('../images/icons/search_icon.png')}/>
-                    </TouchableOpacity>
-                </View>
                 <View style={main.weatherIconWrap}>
                     <View style={main.weatherTempDetailWrap}>
                         <View style={main.weatherTempLeftWrap}>
@@ -272,9 +294,6 @@ class Main extends Component {
                             }
                         </TouchableOpacity>
                     </View>
-                    <Text style={main.weatherFavoritText}>
-                        따듯한 한강 주변 지역
-                    </Text>
                 </View>
                 <View style={main.riverTempWrap}>
                     <ImageBackground style={main.riverTempBack} source={nowTime.getHours() > 6 || nowTime.getHours() < 18 ? require('../images/commons/river_morning.jpg') : require('../images/commons/river_night.jpg')}>
@@ -284,13 +303,33 @@ class Main extends Component {
                         </View>
                     </ImageBackground>
                 </View>
+                <View style={main.coronaWrap}>
+                    <View style={main.coronaTop}>
+                        <View style={main.coronaTextWrap}>
+                            <Text>코로나 확진자 총</Text>
+                            <Text style={main.coronaSplitText}>{totalCnt}<Text style={main.coronaHighlight}> ( +{previousDay})</Text></Text>
+                        </View>
+                        <View style={main.coronaTextWrap}>
+                            <Text>코로나 사망자 총</Text>
+                            <Text style={main.coronaSplitText}>{deathCnt}</Text>
+                        </View>
+                    </View>
+                    <View style={main.coronaBottom}>
+                        <Text style={main.coronaBottomText}>집계일 {baseDate}</Text>
+                    </View>
+                </View>
                 <View style={main.hopeTextWrap}>
                     <Text style={main.hopeText}>
-                        띵언 및 좋은 문구들
+                        {ment}
                     </Text>
-                    <Text style={main.hopeTextAuthor}>
-                        문구 만든놈
-                    </Text>
+                    {
+                        authorName ?
+                            <Text style={main.hopeTextAuthor}>
+                                {authorName}
+                            </Text>
+                            :
+                            null
+                    }
                 </View>
             </View>
             </ScrollView>
