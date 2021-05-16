@@ -81,16 +81,18 @@ const main = StyleSheet.create({
         marginRight: 0,
     },
     weatherRefreshText: {
-        width: 125,
+        width: '100%',
         height: 20,
         lineHeight: 20,
         fontSize: 12,
-        textAlign: 'left',
+        textAlign: 'right',
+        paddingRight: 24,
     },
     weatherRefresh: {
         width: 20,
         height: 20,
         marginLeft: 6,
+        position: 'absolute',
     },
     weatherRefreshImage: {
         width: 20,

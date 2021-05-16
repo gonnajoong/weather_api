@@ -12,8 +12,6 @@ const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
 }
 
-
-
 const App = () => {
     const [refreshing, setRefreshing] = React.useState(false);
     const onRefresh = React.useCallback(() => {
@@ -23,7 +21,7 @@ const App = () => {
 
     return (
         <SafeAreaView style={index.container}>
-                <StatusBar hidden />
+                <StatusBar/>
                 <Main/>
         </SafeAreaView>
       );

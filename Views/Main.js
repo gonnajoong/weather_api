@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import XMLParser from 'react-xml-parser';
 import Geolocation from "react-native-geolocation-service";
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
@@ -45,6 +46,7 @@ class Main extends Component {
             lat: 0,
             lon: 0,
             riverTemp: '',
+            name: '',
             weatherType: '', //날씨 상태
             w_icon: '', //날씨 아이콘
             temp_max: '',
@@ -62,13 +64,9 @@ class Main extends Component {
         };
     }
     async componentDidMount() {
-        await this._onRefresh();
         await this.requestLocationPermission();
         await this.getsLocation();
-        await this.getRiverTemp();
-        await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
-        await this.getCorona();
-        await this.randomMent();
+        await this._onRefresh();
     }
 
     handler = (e, key) => {
@@ -122,6 +120,7 @@ class Main extends Component {
                 temp_min: this.Kconvert(main.temp_min),
                 temp: this.Kconvert(main.temp),
                 s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
+                name: data.name,
             });
         } else {
             console.log('에러');
@@ -184,23 +183,21 @@ class Main extends Component {
 
     async refreshButton (e) {
         e.preventDefault();
-        const {lat, lon} = this.state;
         await this.setState({refreshDate: this.dateFormat(), loadingToggle: true});
         await this.getsLocation();
-        await this.getNeighborhoodTemp(lat, lon);
+        await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
         await this.getRiverTemp();
         await this.getCorona();
         await this.setState({loadingToggle: false});
     }
 
-    refreshData () {
-        const {lat, lon} = this.state;
-        this.setState({refreshDate: this.dateFormat()});
-        this.getsLocation();
-        this.getNeighborhoodTemp(lat, lon);
-        this.getRiverTemp();
-        this.getCorona();
-        this.randomMent();
+    async refreshData () {
+        await this.setState({refreshDate: this.dateFormat()});
+        await this.getsLocation();
+        await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
+        await this.getRiverTemp();
+        await this.getCorona();
+        await this.randomMent();
     }
 
     _onRefresh = () => {
@@ -225,19 +222,19 @@ class Main extends Component {
             try {
                 let xmlArrays = data.response.body.items.item;
                 let total = '';
-
                 for (let i in xmlArrays) {
                     if(Array.isArray(xmlArrays) && xmlArrays[i].gubun == '합계') {
                         total = xmlArrays[i];
                     }
                 }
+
+
                 await this.setState({
                     deathCnt: total.deathCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     totalCnt: total.defCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     previousDay: total.incDec.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     baseDate: total.stdDay,
                 });
-                alert('hi corona');
             } catch(err) {
                 console.log('error ' + err);
                 return false;
@@ -259,7 +256,7 @@ class Main extends Component {
     }
 
     render() {
-        const {searchText, riverTemp, weatherType, temp_max, temp_min,
+        const {searchText, riverTemp, name, weatherType, temp_max, temp_min,
             temp, s_temp, refreshDate, nowTime, loadingToggle, w_icon,
             deathCnt, totalCnt, previousDay, baseDate, ment, authorName} = this.state;
         return (
@@ -280,6 +277,7 @@ class Main extends Component {
                             <Text style={main.weatherTemp}>{temp ? temp : '-'}°</Text>
                         </View>
                         <View style={main.weatherTempRightWrap}>
+                            <Text style={main.weatherTempDetailText}>{name ? name : '-'}</Text>
                             <Text style={main.weatherTempDetailText}>{weatherType ? weatherType : '-'}</Text>
                             <Text style={main.weatherTempDetailText}>{temp_max ? temp_max : '-'}° / {temp_min ? temp_min : '-'}°</Text>
                             <Text style={main.weatherTempDetailText}>체감온도 {s_temp ? s_temp : '-'}°</Text>
