@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl, ToastAndroid } from 'react-native';
+import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl, ToastAndroid, AsyncStorage } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
 import NetInfo from "@react-native-community/netinfo";
+import {Cache} from 'react-native-cache';
 
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
@@ -13,6 +14,14 @@ import {author, ment} from "../Utils/goodMents";
 
 //style
 import main from '../Assets/views/_main';
+
+const cache = new Cache({
+    namespace: "myapp",
+    policy: {
+        maxEntries: 50000
+    },
+    backend: AsyncStorage
+});
 
 const icons = {
     "01d": require('../images/icons/01d.png'),
@@ -59,9 +68,14 @@ class Main extends Component {
             ment: '',
             authorName: '',
             refreshStay: '',
+            deathCnt: 0,
+            totalCnt: 0,
+            previousDay: 0,
+            baseDate: '',
         };
     }
     async componentDidMount() {
+        await this.cacheToState();
         await this.requestLocationPermission();
         await this.getsLocation();
         await this._onRefresh();
@@ -71,6 +85,30 @@ class Main extends Component {
         let temp = [];
         temp[key] = e;
         this.setState(temp);
+    }
+
+    async cacheToState () {
+        let weatherCache = await cache.get('weather');
+        let riverCache = await cache.get('riverTemp');
+        let coronaCache = await cache.get('corona');
+
+        if(weatherCache && riverCache && coronaCache) {
+            let cacheData = {
+                name: weatherCache.name,
+                w_icon: weatherCache.w_icon,
+                weatherType: weatherCache.weatherType,
+                temp_max: weatherCache.temp_max,
+                temp_min: weatherCache.temp_min,
+                temp: weatherCache.temp,
+                s_temp: weatherCache.s_temp, // 체감 온도
+                riverTemp: riverCache.riverTemp, // 강 온도
+                deathCnt: coronaCache.deathCnt,
+                totalCnt: coronaCache.totalCnt,
+                previousDay: coronaCache.previousDay,
+                baseDate: coronaCache.baseDate,
+            };
+            await this.setState(cacheData);
+        }
     }
     
     getsLocation = async () => {
@@ -90,6 +128,7 @@ class Main extends Component {
             if(data[0].result == "success") {
                 let riverTemp = {riverTemp: data[1].respond.temp};
                 await this.setState(riverTemp);
+                await cache.set('riverTemp', riverTemp);
             } else {
                 console.log('정보 요청 실패');
             }
@@ -111,7 +150,7 @@ class Main extends Component {
             let weather = data.weather;
             let main = data.main;
             let wind = data.wind;
-            await this.setState({
+            let weatherData = {
                 w_icon: weather[0].icon,
                 weatherType: weather[0].description, //날씨 상태
                 temp_max: this.Kconvert(main.temp_max),
@@ -119,7 +158,9 @@ class Main extends Component {
                 temp: this.Kconvert(main.temp),
                 s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
                 name: data.name,
-            });
+            };
+            await this.setState(weatherData);
+            await cache.set('weather', weatherData);
         } else {
             console.log('에러');
         }
@@ -247,13 +288,18 @@ class Main extends Component {
                     }
                 }
 
-                await this.setState({
+                let coronaData = {
                     deathCnt: total.deathCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     totalCnt: total.defCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     previousDay: total.incDec.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     baseDate: total.stdDay,
+                };
+
+                await this.setState({
+                    coronaData,
                     refreshStay: false
                 });
+                await cache.set('corona', coronaData);
             } catch(err) {
                 await this.setState({refreshStay: false});
                 console.log('error ' + err);
@@ -327,11 +373,11 @@ class Main extends Component {
                 <View style={main.coronaWrap}>
                     <View style={main.coronaTop}>
                         <View style={main.coronaTextWrap}>
-                            <Text>코로나 확진자 총</Text>
+                            <Text>코로나 총 확진자</Text>
                             <Text style={main.coronaSplitText}>{totalCnt}<Text style={main.coronaHighlight}> ( +{previousDay})</Text></Text>
                         </View>
                         <View style={main.coronaTextWrap}>
-                            <Text>코로나 사망자 총</Text>
+                            <Text>코로나 총 사망자</Text>
                             <Text style={main.coronaSplitText}>{deathCnt}</Text>
                         </View>
                     </View>
