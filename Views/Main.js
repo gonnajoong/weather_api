@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
-import XMLParser from 'react-xml-parser';
 import Geolocation from "react-native-geolocation-service";
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
