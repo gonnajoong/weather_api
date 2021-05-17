@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
-import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl, ToastAndroid } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
+import NetInfo from "@react-native-community/netinfo";
+
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
 import coronaManager from "./managers/corona";
@@ -33,10 +35,6 @@ const icons = {
     "50n": require('../images/icons/50n.png'),
 }
 
-const wait = (timeout) => {
-    return new Promise(resolve => setTimeout(resolve, timeout));
-}
-
 class Main extends Component {
     constructor(props) {
         super(props);
@@ -60,6 +58,7 @@ class Main extends Component {
             mentArr: ment,
             ment: '',
             authorName: '',
+            refreshStay: '',
         };
     }
     async componentDidMount() {
@@ -199,11 +198,32 @@ class Main extends Component {
         await this.randomMent();
     }
 
-    _onRefresh = () => {
-        this.setState({refreshing: true});
-        wait(2000).then(() => {
-            this.refreshData();
-            this.setState({refreshing: false});
+    wait = (timeout) => {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+
+    _onRefresh = async () => {
+        await NetInfo.fetch().then(async state => {
+            if(state.isConnected){
+                //    인터넷 연결
+                await this.setState({refreshing: true, refreshStay: true});
+                await this.wait(0).then( async() => {
+                    await this.refreshData();
+                    let stayType = await this.state.refreshStay;
+                    if(!stayType) {
+                        await this.setState({refreshing: false});
+                    }
+                });
+            } else {
+                //    인터넷 연결 안됨
+                ToastAndroid.showWithGravityAndOffset(
+                    "인터넷이 오프라인이에요",
+                    ToastAndroid.SHORT,
+                    ToastAndroid.BOTTOM,
+                    25,
+                    100
+                );
+            }
         });
     }
 
@@ -227,18 +247,20 @@ class Main extends Component {
                     }
                 }
 
-
                 await this.setState({
                     deathCnt: total.deathCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     totalCnt: total.defCnt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     previousDay: total.incDec.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                     baseDate: total.stdDay,
+                    refreshStay: false
                 });
             } catch(err) {
+                await this.setState({refreshStay: false});
                 console.log('error ' + err);
                 return false;
             }
         } else {
+            await this.setState({refreshStay: false});
             console.log('에라 코드 ');
             return false;
         }
