@@ -12,6 +12,8 @@ target 'weather_api' do
     :hermes_enabled => false
   )
 
+  pod 'react-native-splash-screen', :path => '../node_modules/react-native-splash-screen'
+
   target 'weather_apiTests' do
     inherit! :complete
     # Pods for testing

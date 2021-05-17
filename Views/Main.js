@@ -3,6 +3,7 @@ import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity,
 import Geolocation from "react-native-geolocation-service";
 import NetInfo from "@react-native-community/netinfo";
 import {Cache} from 'react-native-cache';
+import SplashScreen from "react-native-splash-screen";
 
 import riverManager from "./managers/river";
 import weatherManager from "./managers/weather";
@@ -75,6 +76,9 @@ class Main extends Component {
         };
     }
     async componentDidMount() {
+        setTimeout(() => {
+            SplashScreen.hide();
+        }, 500);
         await this.cacheToState();
         await this.requestLocationPermission();
         await this.getsLocation();
