@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl, ToastAndroid, AsyncStorage } from 'react-native';
+import { Text, View, TextInput, Image, ImageBackground, Alert, TouchableOpacity, PermissionsAndroid, ActivityIndicator, ScrollView, RefreshControl, ToastAndroid } from 'react-native';
 import Geolocation from "react-native-geolocation-service";
 import NetInfo from "@react-native-community/netinfo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {Cache} from 'react-native-cache';
 import SplashScreen from "react-native-splash-screen";
 
