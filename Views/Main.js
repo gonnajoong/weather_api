@@ -270,26 +270,23 @@ class Main extends Component {
         });
     }
 
-    async getCoronaData (startDate, endDate) {
+    async getCoronaData () {
         let query = {
             ServiceKey: constant.coronaKey,
             pageNo: '1',
             numOfRows: '10',
-            startCreateDt: startDate ? startDate : date(new Date(),'yyyyMMdd'),
-            endCreateDt: endDate ? endDate : date(new Date(),'yyyyMMdd'),
+            startCreateDt: date(new Date(),'yyyyMMdd'),
+            endCreateDt: date(new Date(),'yyyyMMdd'),
         };
-
-        console.log('날짜 ' + startDate + ' ' + endDate);
-        console.log('im corona');
 
         const {status, data} = await coronaManager.get(query);
         if(status === 200) {
             try {
-                let xmlArrays = data.response.body.items;
-                let total = '';
-                if(xmlArrays.length){
-                    console.log('있다요');
-                    for (let i in xmlArrays['item']) {
+                let resultCode = data.response.header.resultCode;
+                if(resultCode == "00" ){
+                    let xmlArrays = data.response.body.items;
+                    let total = '';
+                    for (let i in xmlArrays.item) {
                         if(Array.isArray(xmlArrays) && xmlArrays[i].gubun == '합계') {
                             total = xmlArrays[i];
                         }
@@ -304,12 +301,10 @@ class Main extends Component {
                     await cache.set('corona', coronaData);
                     await this.setState({refreshing: false});
                 } else {
-                    console.log('없다요');
-                    let startCreateDt = date(new Date().setTime(new Date().getTime() - (1 * 24 * 60 * 60 * 1000)), 'yyyyMMdd'); //1일전
-                    let endCreateDt = date(new Date().setTime(new Date().getTime() - (1 * 24 * 60 * 60 * 1000)), 'yyyyMMdd') //1일전
-                    return this.getCoronaData(startCreateDt, endCreateDt);
+                    let coronaData = cache.get('corona');
+                    await this.setState(coronaData);
+                    await this.setState({refreshing: false});
                 }
-                // alert('코로나 전날 대비 증가 ' + total.deathCnt + " 사망자 "+total.defCnt+ "총 감염자 " +total.incDec+ "집계일 " +total.stdDay);
             } catch(err) {
                 console.log('error ' + err);
                 alert('error ' + err);
