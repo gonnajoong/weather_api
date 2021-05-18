@@ -84,7 +84,6 @@ class Main extends Component {
         await this.getsLocation();
         await this.cacheToState();
         await this._onRefresh();
-        console.log('globe? ' + this.state.name);
     }
 
     handler = (e, key) => {
@@ -283,8 +282,11 @@ class Main extends Component {
         if(status === 200) {
             try {
                 let resultCode = data.response.header.resultCode;
-                let itemExist = data.response.body.items.item;
-                if(resultCode == "00" && typeof itemExist !== 'undefined'){
+                let itemExist = false;
+                if(typeof(data.response.body) !== 'undefined'){
+                    itemExist = true;
+                }
+                if(resultCode == "00" ){
                     let xmlArrays = data.response.body.items.item;
                     let total = '';
                     for (let i in xmlArrays) {

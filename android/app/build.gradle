@@ -136,9 +136,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        // ndk {
-        //     abiFilters "armeabi-v7a", "x86"
-        // }
+//        ndk {
+//            abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+//        }
     }
     splits {
         abi {
@@ -171,11 +171,11 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            shrinkResources false
+            signingConfig signingConfigs.release
         }
+
     }
 
     // applicationVariants are e.g. debug, release
@@ -188,7 +188,8 @@ android {
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =
-                        defaultConfig.versionCode * 1000 + versionCodes.get(abi)
+//                        defaultConfig.versionCode * 1000 + versionCodes.get(abi)
+                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
             }
 
         }
