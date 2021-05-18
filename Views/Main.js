@@ -283,10 +283,11 @@ class Main extends Component {
         if(status === 200) {
             try {
                 let resultCode = data.response.header.resultCode;
-                if(resultCode == "00" ){
-                    let xmlArrays = data.response.body.items;
+                let itemExist = data.response.body.items.item;
+                if(resultCode == "00" && typeof itemExist !== 'undefined'){
+                    let xmlArrays = data.response.body.items.item;
                     let total = '';
-                    for (let i in xmlArrays.item) {
+                    for (let i in xmlArrays) {
                         if(Array.isArray(xmlArrays) && xmlArrays[i].gubun == '합계') {
                             total = xmlArrays[i];
                         }
