@@ -83,7 +83,7 @@ class Main extends Component {
         await this.requestLocationPermission();
         await this.getsLocation();
         await this.cacheToState();
-        await this._onRefresh();
+        await this.getData();
     }
 
     handler = (e, key) => {
@@ -96,29 +96,34 @@ class Main extends Component {
         let weatherCache = await cache.get('weather');
         let riverCache = await cache.get('riverTemp');
         let coronaCache = await cache.get('corona');
-
-        if(weatherCache && riverCache && coronaCache) {
-            let cacheData = {
-                name: weatherCache.name,
-                w_icon: weatherCache.w_icon,
-                weatherType: weatherCache.weatherType,
-                temp_max: weatherCache.temp_max,
-                temp_min: weatherCache.temp_min,
-                temp: weatherCache.temp,
-                s_temp: weatherCache.s_temp, // 체감 온도
-                riverTemp: riverCache.riverTemp, // 강 온도
-                deathCnt: coronaCache.deathCnt,
-                totalCnt: coronaCache.totalCnt,
-                previousDay: coronaCache.previousDay,
-                baseDate: coronaCache.baseDate,
-            };
-            await this.setState(cacheData);
+        try {
+            if(typeof(weatherCache) !== 'undefined' && typeof(riverCache) !== 'undefined' && typeof(coronaCache) !== 'undefined') {
+                let cacheData = {
+                    name: weatherCache.name,
+                    w_icon: weatherCache.w_icon,
+                    weatherType: weatherCache.weatherType,
+                    temp_max: weatherCache.temp_max,
+                    temp_min: weatherCache.temp_min,
+                    temp: weatherCache.temp,
+                    s_temp: weatherCache.s_temp, // 체감 온도
+                    riverTemp: riverCache.riverTemp, // 강 온도
+                    deathCnt: coronaCache.deathCnt,
+                    totalCnt: coronaCache.totalCnt,
+                    previousDay: coronaCache.previousDay,
+                    baseDate: coronaCache.baseDate,
+                };
+                await this.setState(cacheData);
+            } else {
+                await this.getNeighborhoodTemp();
+            }
+        } catch(err) {
+            console.log(err);
         }
-    }
-    
-    getsLocation = async () => {
-        await Geolocation.getCurrentPosition( async (position) => {
 
+    }
+
+    async getsLocation () {
+        await Geolocation.getCurrentPosition( async (position) => {
             await this.setState({lat: position.coords.latitude, lon: position.coords.longitude});
         }, (error) => {
             alert('error : ' + error.message);
@@ -142,33 +147,41 @@ class Main extends Component {
         }
     }
 
-    async getNeighborhoodTemp (lat, lon) {
-        let query = {
-            lat: lat,
-            lon: lon,
-            appid: constant.weatherKey,
-            lang: 'kr'
-        };
-
-        const {status, data} = await weatherManager.get(query);
-        if(status === 200) {
-            let weather = data.weather;
-            let main = data.main;
-            let wind = data.wind;
-            let weatherData = {
-                w_icon: weather[0].icon,
-                weatherType: weather[0].description, //날씨 상태
-                temp_max: this.Kconvert(main.temp_max),
-                temp_min: this.Kconvert(main.temp_min),
-                temp: this.Kconvert(main.temp),
-                s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
-                name: data.name,
+    async getNeighborhoodTemp () {
+        await Geolocation.getCurrentPosition( async (position) => {
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+            let query = {
+                lat: lat,
+                lon: lon,
+                appid: constant.weatherKey,
+                lang: 'kr'
             };
-            await this.setState(weatherData);
-            await cache.set('weather', weatherData);
-        } else {
-            console.log('에러');
-        }
+            //TODO 로케이션 가져오는 함수 제거 및 오류 없는지 검토
+            const {status, data} = await weatherManager.get(query);
+            if(status === 200) {
+                let weather = data.weather;
+                let main = data.main;
+                let wind = data.wind;
+                let weatherData = {
+                    w_icon: weather[0].icon,
+                    weatherType: weather[0].description, //날씨 상태
+                    temp_max: this.Kconvert(main.temp_max),
+                    temp_min: this.Kconvert(main.temp_min),
+                    temp: this.Kconvert(main.temp),
+                    s_temp: this.windChillTemp(main.temp, wind.speed), // 체감 온도
+                    name: data.name,
+                };
+                await this.setState(weatherData);
+                await cache.set('weather', weatherData);
+            } else {
+                console.log('에러');
+            }
+        }, (error) => {
+            alert('현재 위치 값을 가져오는데\n실패했습니다. 위치 권한을 실행해주세요.');
+            console.log('ERROR :' + error.message);
+            //퍼미션 없을 시 실패 AndroidManifest.xml 에서 추가할 것
+        });
     }
 
     Kconvert (kelvin) {
@@ -225,22 +238,28 @@ class Main extends Component {
         }
     }
 
+    async getData () {
+        await this.getRiverTemp();
+        //await this.getCoronaData();
+        await this.randomMent();
+    }
+
     async refreshButton (e) {
         e.preventDefault();
         await this.setState({refreshDate: this.dateFormat(), loadingToggle: true});
         await this.getsLocation();
-        await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
+        await this.getNeighborhoodTemp();
         await this.getRiverTemp();
-        await this.getCoronaData();
+        // await this.getCoronaData();
         await this.setState({loadingToggle: false});
     }
 
     async refreshData () {
         await this.setState({refreshDate: this.dateFormat()});
         await this.getsLocation();
-        await this.getNeighborhoodTemp(this.state.lat, this.state.lon);
+        await this.getNeighborhoodTemp();
         await this.getRiverTemp();
-        await this.getCoronaData();
+        // await this.getCoronaData();
         await this.randomMent();
     }
 
