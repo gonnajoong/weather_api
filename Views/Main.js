@@ -309,7 +309,6 @@ class Main extends Component {
 
         const {status, data} = await coronaManager.get(query);
         if(status === 200) {
-            alert('앙녕');
             try {
                 let resultCode = data.response.header.resultCode;
                 let itemExist = false;
