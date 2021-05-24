@@ -81,7 +81,6 @@ class Main extends Component {
             SplashScreen.hide();
         }, 500);
         await this.requestLocationPermission();
-        await this.getsLocation();
         await this.cacheToState();
         await this.getData();
     }
@@ -122,15 +121,6 @@ class Main extends Component {
 
     }
 
-    async getsLocation () {
-        await Geolocation.getCurrentPosition( async (position) => {
-            await this.setState({lat: position.coords.latitude, lon: position.coords.longitude});
-        }, (error) => {
-            alert('error : ' + error.message);
-            //퍼미션 없을 시 실패 AndroidManifest.xml 에서 추가할 것
-        });
-    }
-
     async getRiverTemp () {
         let query = {apikey: constant.apikey}
         const {status, data} = await riverManager.get(query);
@@ -157,7 +147,6 @@ class Main extends Component {
                 appid: constant.weatherKey,
                 lang: 'kr'
             };
-            //TODO 로케이션 가져오는 함수 제거 및 오류 없는지 검토
             const {status, data} = await weatherManager.get(query);
             if(status === 200) {
                 let weather = data.weather;
@@ -240,26 +229,24 @@ class Main extends Component {
 
     async getData () {
         await this.getRiverTemp();
-        //await this.getCoronaData();
+        await this.coronaApiFilter();
         await this.randomMent();
     }
 
     async refreshButton (e) {
         e.preventDefault();
         await this.setState({refreshDate: this.dateFormat(), loadingToggle: true});
-        await this.getsLocation();
         await this.getNeighborhoodTemp();
         await this.getRiverTemp();
-        // await this.getCoronaData();
+        await this.coronaApiFilter();
         await this.setState({loadingToggle: false});
     }
 
     async refreshData () {
         await this.setState({refreshDate: this.dateFormat()});
-        await this.getsLocation();
         await this.getNeighborhoodTemp();
         await this.getRiverTemp();
-        // await this.getCoronaData();
+        await this.coronaApiFilter();
         await this.randomMent();
     }
 
@@ -288,6 +275,29 @@ class Main extends Component {
         });
     }
 
+    async coronaApiFilter () {
+        let coronaCache = await cache.get('corona');
+        try {
+            if(typeof(coronaCache) == 'undefined') {
+                await this.getCoronaData();
+            } else {
+                let splitDate = (coronaCache.baseDate).split(' ');
+                let dateObj = [];
+                for(let i in splitDate) {
+                    dateObj.push(splitDate[i].slice(0, -1));
+                }
+                let date = new Date();
+                let cacheDate = new Date(dateObj[0], dateObj[1], dateObj[2], dateObj[3]);
+                let toDay = new Date(date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours());
+                if((toDay - cacheDate)/(60*60*1000) > 24) {
+                    await this.getCoronaData();
+                }
+            }
+        } catch (e) {
+            console.log('undefined Error');
+        }
+    }
+
     async getCoronaData () {
         let query = {
             ServiceKey: constant.coronaKey,
@@ -299,6 +309,7 @@ class Main extends Component {
 
         const {status, data} = await coronaManager.get(query);
         if(status === 200) {
+            alert('앙녕');
             try {
                 let resultCode = data.response.header.resultCode;
                 let itemExist = false;
@@ -329,11 +340,9 @@ class Main extends Component {
                 }
             } catch(err) {
                 console.log('error ' + err);
-                alert('error ' + err);
             }
         } else {
-            console.log('에라 코드 ');
-            alert('error');
+            console.log('Corona Get Error');
         }
     }
 
@@ -366,13 +375,13 @@ class Main extends Component {
                                 style={main.weatherIcon}
                                 source={icons[w_icon]}
                             />
-                            <Text style={main.weatherTemp}>{temp ? temp : '-'}°</Text>
+                            <Text style={main.weatherTemp}>{temp ? temp : '0'}°</Text>
                         </View>
                         <View style={main.weatherTempRightWrap}>
                             <Text style={main.weatherTempDetailText}>{name ? name : '-'}</Text>
                             <Text style={main.weatherTempDetailText}>{weatherType ? weatherType : '-'}</Text>
-                            <Text style={main.weatherTempDetailText}>{temp_max ? temp_max : '-'}° / {temp_min ? temp_min : '-'}°</Text>
-                            <Text style={main.weatherTempDetailText}>체감온도 {s_temp ? s_temp : '-'}°</Text>
+                            <Text style={main.weatherTempDetailText}>{temp_max ? temp_max : '0'}° / {temp_min ? temp_min : '0'}°</Text>
+                            <Text style={main.weatherTempDetailText}>체감온도 {s_temp ? s_temp : '0'}°</Text>
                         </View>
                     </View>
                     <View style={main.weatherRefreshWrap}>
